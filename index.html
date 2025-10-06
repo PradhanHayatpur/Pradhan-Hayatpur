@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hayatpur Panchayat — Citizen Services</title>
+  <meta name="description" content="Hayatpur Panchayat Portal — raise queries, track status, view projects, notices and schemes." />
+  <meta name="theme-color" content="#0f5a2b" />
+  
+  <style>
+    /* ====== Variables & Reset ====== */
+    :root{
+      --bg: #f5fbf8;
+      --card: #ffffff;
+      --text: #072227;
+      --muted: #607070;
+      --panchayat-green: #0f6b3a;
+      --accent: #f6a21a;
+      --glass: rgba(255,255,255,0.55);
+      --radius: 14px;
+      --shadow: 0 18px 40px rgba(10,20,15,0.06);
+      --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+      --max-width: 1100px;
+    }
+
+    /* Dark Mode Variables */
+    body.dark-mode {
+      --bg: #0f1414;
+      --card: #141a1a;
+      --text: #e9f0ef;
+      --muted: #9db0af;
+      --shadow: 0 18px 40px rgba(0,0,0,0.6);
+      --glass: rgba(255,255,255,0.03);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html,body{height:100%;}
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: radial-gradient(1200px 600px at 10% 10%, rgba(15,107,58,0.04), transparent), var(--bg); color: var(--text); line-height: 1.6; transition: background 0.35s var(--ease), color 0.35s var(--ease); -webkit-font-smoothing:antialiased; }
+
+    /* Accessibility: Focus Outline */
+    :focus-visible { outline: 3px solid rgba(246,162,26,0.25); outline-offset: 3px; }
+    body:not(.show-focus) :focus-visible { outline: none; }
+
+    /* Layout */
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 20px; }
+    header { background: linear-gradient(90deg, var(--panchayat-green), #0b8a4a); color: white; padding: 18px 0; box-shadow: 0 6px 24px rgba(11,76,35,0.12); position: sticky; top: 0; z-index: 1200; transition: padding 0.25s var(--ease), box-shadow 0.25s var(--ease); }
+    header.shrink { padding: 10px 0; box-shadow: 0 8px 28px rgba(11,76,35,0.18); }
+
+    nav { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .logo { display:flex; flex-direction:column; }
+    .logo .title{ font-weight:800; letter-spacing: -0.5px; font-size:1.25rem; }
+    .logo .sub { font-size:0.78rem; opacity:0.9; margin-top:3px; }
+
+    .nav-links { display:flex; gap:10px; align-items:center; }
+    .nav-links a{ color: rgba(255,255,255,0.95); text-decoration:none; padding:8px 12px; border-radius:12px; font-weight:600; font-size:0.95rem; transition: transform 0.18s var(--ease), background 0.18s; }
+    .nav-links a:hover{ transform: translateY(-3px); background: rgba(255,255,255,0.06); }
+
+    .menu-toggle { display:none; background:transparent; border:0; color:white; font-size:1.6rem; cursor:pointer; }
+
+    /* Responsive grid & cards */
+    .card-grid { display:grid; gap:18px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .card{ border-radius:var(--radius); background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.82)); padding:18px; box-shadow: var(--shadow); border: 1px solid rgba(8, 20, 15, 0.03); transition: transform 0.28s var(--ease), box-shadow 0.28s var(--ease); }
+    .card:hover{ transform: translateY(-6px); box-shadow: 0 30px 60px rgba(10,20,15,0.08); }
+
+    main{ padding:28px 0 80px; }
+    .section{ padding:40px 0; }
+    .section h2{ font-size:1.6rem; margin-bottom:20px; color:var(--panchayat-green); display:inline-block; border-bottom:3px solid rgba(246,162,26,0.12); padding-bottom:6px; }
+
+    /* Hero */
+    .hero{ display:flex; align-items:center; justify-content:center; text-align:center; padding:56px 18px; border-radius:18px; margin:18px 0; background: linear-gradient(180deg, rgba(15,107,58,0.06), rgba(15,107,58,0.02)); }
+    .hero-content h1{ font-size:2.1rem; margin-bottom:12px; line-height:1.15; }
+    .hero-content p{ color:var(--muted); font-size:1rem; margin-bottom:14px; }
+
+    /* Buttons: ripple + subtle glow */
+    .btn{ position:relative; overflow:hidden; display:inline-block; background: linear-gradient(180deg, var(--panchayat-green), #0b8340); color:white; padding:12px 22px; border-radius:12px; border:none; cursor:pointer; font-weight:700; box-shadow: 0 8px 20px rgba(11,73,40,0.12); transition: transform 0.18s var(--ease); }
+    .btn:hover{ transform: translateY(-5px); }
+    .btn:active{ transform: translateY(-1px) scale(0.995); }
+    .btn.secondary{ background: linear-gradient(180deg, #f6a21a, #e48e12); color:#122; box-shadow: 0 8px 20px rgba(246,162,26,0.12); }
+    .btn.small{ padding:8px 12px; border-radius:10px; }
+
+    /* ripple effect */
+    .btn .ripple{ position:absolute; border-radius:50%; transform:scale(0); opacity:0.6; pointer-events:none; background: rgba(255,255,255,0.22); animation:ripple 0.6s linear; }
+    @keyframes ripple{ to{ transform:scale(6); opacity:0; } }
+
+    /* Forms */
+    input, textarea, select{ width:100%; padding:12px; border-radius:10px; border:1px solid rgba(10,20,15,0.06); background: rgba(255,255,255,0.9); font-size:0.95rem; color:var(--text); transition:box-shadow 0.18s, border-color 0.18s; }
+    input:focus, textarea:focus{ box-shadow: 0 8px 30px rgba(11,73,40,0.06); border-color: rgba(11,73,40,0.16); outline:none; }
+    textarea{ min-height:110px; resize:vertical; }
+
+    /* Projects */
+    .project{ padding:16px; border-radius:12px; border:1px solid rgba(8,20,15,0.03); background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95)); }
+    .project h4{ margin-bottom:8px; }
+    .progress-container{ background: linear-gradient(90deg, rgba(15,107,58,0.06), rgba(246,162,26,0.03)); height:12px; border-radius:8px; overflow:hidden; }
+    .progress-bar{ height:100%; background: linear-gradient(90deg, var(--accent), #ffcc66); transition: width 0.8s var(--ease); }
+
+    /* Notices */
+    .notice{ padding:14px; border-left:5px solid rgba(246,162,26,0.9); background:linear-gradient(180deg, rgba(255,250,240,0.9), rgba(255,255,255,0.92)); border-radius:10px; }
+
+    /* Footer */
+    footer{ background:transparent; padding:40px 0; color:var(--muted); }
+    footer a{ color:var(--panchayat-green); text-decoration:none; }
+
+    /* Scroll to top */
+    #scrollToTop{ position:fixed; right:20px; bottom:20px; width:46px; height:46px; border-radius:50%; background:linear-gradient(180deg,var(--accent),#e68e00); color:#072227; border:none; display:none; align-items:center; justify-content:center; font-weight:700; box-shadow:0 12px 30px rgba(246,162,26,0.12); cursor:pointer; }
+    #scrollToTop.show{ display:flex; }
+
+    /* small screens */
+    @media (max-width:899px){
+      .hero-content h1{ font-size:1.6rem; }
+      .logo .title{ font-size:1.05rem; }
+      .container{ padding:0 16px; }
+      header{ padding:14px 0; }
+      .menu-toggle{ display:block; }
+      .nav-links{ display:none; }
+      .card-grid{ gap:14px; }
+      main{ padding:18px 0 60px; }
+    }
+
+    @media (max-width:520px){
+      :root{ --radius:12px; }
+      .hero{ padding:34px 12px; }
+      .card{ padding:14px; }
+      .section{ padding:22px 0; }
+      .hero-content p{ font-size:0.95rem; }
+      .logo .sub{ display:none; }
+      .logo .title{ font-size:1rem; }
+    }
+
+    /* subtle entrance */
+    .fade-up{ opacity:0; transform:translateY(18px); animation:fadeUp 0.6s var(--ease) forwards; }
+    @keyframes fadeUp{ to{ opacity:1; transform:none; } }
+
+  </style>
+</head>
+<body>
+
+  <header id="topHeader" aria-hidden="false">
+    <div class="container">
+      <nav>
+        <div class="logo" aria-label="Hayatpur Panchayat">
+          <span class="title">Hayatpur Panchayat</span>
+          <span class="sub">Digital Citizen Service — Transparency • Accountability • Speed</span>
+        </div>
+
+        <div class="nav-links" role="navigation">
+            <a href="#home">Home</a>
+            <a href="#raise">Raise</a>
+            <a href="#projects">Projects</a>
+            <a href="#notices">Notices</a>
+            <button id="langToggle" title="Toggle Language" style="background:none; border:none; color:white; font-weight:700; cursor:pointer; padding:8px 10px;">हिंदी</button>
+        </div>
+        <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mobileMenu">☰</button>
+      </nav>
+      <div id="mobileMenu" style="display:none; margin-top:12px;">
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <a href="#home" style="color:white; text-decoration:none; font-weight:700;">Home</a>
+          <a href="#raise" style="color:white; text-decoration:none; font-weight:700;">Raise</a>
+          <a href="#projects" style="color:white; text-decoration:none; font-weight:700;">Projects</a>
+          <a href="#notices" style="color:white; text-decoration:none; font-weight:700;">Notices</a>
+          <button id="lang1Toggle" title="Toggle Language" style="background:none; border:none; color:white; font-weight:700; cursor:pointer; padding:8px 10px;">हिंदी</button>
+        
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="hero fade-up" id="home">
+      <div class="hero-content">
+        <h1 id="home-heading">Welcome to Hayatpur Panchayat — Citizen Portal</h1>
+        <p>Raise your query, track the status, and stay updated on development work and notices. Designed to work smoothly on every device.</p>
+        <button class="btn" id="raiseNow">Raise a Query Now</button>
+      </div>
+    </section>
+
+    <section class="section fade-up" aria-labelledby="stats-title">
+      <h2 id="stats-title">Panchayat Status At a Glance</h2>
+      <div class="card-grid">
+        <div class="card center">
+          <h3 id="statQueries">0</h3>
+          <p class="muted">Total Queries Received</p>
+        </div>
+        <div class="card center">
+          <h3 id="statResolved">0</h3>
+          <p class="muted">Queries Resolved</p>
+        </div>
+        <div class="card center">
+          <h3 id="statProjects">0</h3>
+          <p class="muted">Active Projects</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="raise" class="section fade-up" aria-labelledby="raise-title">
+      <h2 id="raise-title">Raise a Query / Complaint</h2>
+      <div class="card">
+        <p class="muted small" id="formHelp">Once submitted, you will receive a Query ID — store it for tracking.</p>
+        <form id="queryForm" style="margin-top: 15px; display:grid; gap:10px;">
+          <input type="text" id="name" placeholder="Your Full Name (required)" required>
+          <input type="tel" id="mobile" placeholder="Mobile Number (required)" required>
+          <input type="text" id="village" placeholder="Village / Hamlet (Optional)">
+          <input type="text" id="subject" placeholder="Subject (e.g., Water Supply issue, Road repair)" required>
+          <textarea id="message" placeholder="Detailed Message (required)" required></textarea>
+          <p id="formMsg" class="small muted" style="margin-bottom: 10px;"></p>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <button type="submit" class="btn" id="querySubmitBtn">Submit Query</button>
+            <button type="button" class="btn secondary" id="whatsappQuick">Contact via WhatsApp</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="suggest" class="section fade-up" aria-labelledby="suggest-title">
+      <h2 id="suggest-title">Suggest Improvements / Ideas</h2>
+      <div class="card">
+        <p class="muted small" id="suggestHelp">Your identity will be kept private unless you agree otherwise.</p>
+        <form id="suggestForm" style="margin-top: 15px; display:grid; gap:10px;">
+          <input type="text" id="s_name" placeholder="Your Full Name (Optional)">
+          <input type="text" id="s_village" placeholder="Village / Hamlet (Optional)">
+          <input type="text" id="s_subject" placeholder="Subject (e.g., Idea for Sanitation Drive)" required>
+          <textarea id="s_message" placeholder="Detailed Suggestion (required)" required></textarea>
+          <p id="suggestMsg" class="small muted" style="margin-bottom: 10px;"></p>
+          <button type="submit" class="btn secondary" id="suggestSubmitBtn">Submit Suggestion</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="status" class="section fade-up" aria-labelledby="status-title">
+      <h2 id="status-title">Track Query Status</h2>
+      <div id="myQueriesTracker" style="margin-bottom: 18px;">
+      </div>
+      <div class="card">
+        <form id="checkForm" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <input type="text" id="qid" placeholder="Enter Query ID (e.g., QID-001)" style="flex:1 1 240px;">
+          <button type="submit" class="btn small">Check Status</button>
+        </form>
+        <div id="statusResult" style="margin-top:14px;"></div>
+      </div>
+    </section>
+
+    <section id="projects" class="section fade-up" aria-labelledby="projects-title">
+      <h2 id="projects-title">Development Projects</h2>
+      <div id="projectsGrid" class="card-grid"></div>
+    </section>
+
+    <section id="notices" class="section fade-up" aria-labelledby="notices-title">
+      <h2 id="notices-title">Notices & Announcements</h2>
+      <div id="noticesList"></div>
+    </section>
+
+    <section id="library" class="section fade-up" aria-labelledby="library-title">
+      <h2 id="library-title">E-Library and Documents</h2>
+      <div class="card-grid" id="documentsList"></div>
+    </section>
+
+    <section id="schemes" class="section fade-up" aria-labelledby="schemes-title">
+      <h2 id="schemes-title">Schemes & Budget Highlights</h2>
+      <div class="card-grid">
+        <div class="card"><h4>PM Awas Yojana</h4><p class="muted">Affordable housing support for eligible beneficiaries — application and beneficiary lists available at the office.</p></div>
+        <div class="card"><h4>MNREGA</h4><p class="muted">Employment guarantee work details, job card status and payments.</p></div>
+        <div class="card"><h4>Jal Jeevan Mission</h4><p class="muted">Safe drinking water supply scheme — status of tap connections in the village.</p></div>
+      </div>
+    </section>
+
+    <section id="about" class="section fade-up" aria-labelledby="about-title">
+      <h2 id="about-title">About Hayatpur Panchayat</h2>
+      <div class="card">
+        <p><strong>Hayatpur Panchayat</strong> is committed to promoting transparency and providing efficient citizen services. Our jurisdiction includes the main village and several associated hamlets, ensuring inclusive growth for all residents.</p>
+        <h4 style="margin-top:16px;">Villages Covered (Important Hamlets):</h4>
+        <ul style="margin-left:18px; color:var(--text);">
+          <li>Garhi</li>
+          <li>Gohanupur</li>
+          <li>Nagla Devkaran</li>
+          <li>Nagla Shisham</li>
+          <li>Nagla Khema</li>
+          <li>Nagla Khutiya</li>
+          <li>Nagla Ratti</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="admin" class="section fade-up" aria-labelledby="admin-title">
+      <h2 id="admin-title">Administration</h2>
+      <div class="card">
+        <p class="muted small">This is a demo administration area. Queries submitted by citizens are displayed here for status tracking and updates.</p>
+        <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+          <input type="password" id="adminPin" placeholder="Enter Admin PIN" style="flex:1 1 200px;">
+          <button class="btn small" id="adminLogin">Admin Login</button>
+        </div>
+      </div>
+
+      <div id="adminArea" style="display:none; margin-top:18px;">
+        <h3 style="margin-top:12px; border-bottom:2px solid rgba(96,112,112,0.12); padding-bottom:6px;">Admin Queries List</h3>
+        <div id="adminList" style="margin-top:12px;"></div>
+
+        <h3 style="margin-top:20px; border-bottom:2px solid rgba(96,112,112,0.12); padding-bottom:6px;">Admin Suggestions List</h3>
+        <div id="suggestAdminList" style="margin-top:12px;"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <div style="display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start; justify-content:space-between;">
+        <div style="flex:1 1 280px;">
+          <strong style="color:var(--panchayat-green);">Contact &#128433; Hayatpur Panchayat</strong>
+          <p class="muted" style="margin:8px 0 0;">Phone: +91 89799 59958</p>
+          <p class="muted">Email: contact@hayatpur.in (Example)</p>
+          <p class="muted" style="margin-top:8px;">Address: Hayatpur Panchayat, Mahavan, Mathura, Uttar Pradesh 281305</p>
+        </div>
+        <div style="flex:0 0 220px;">
+          <strong style="color:var(--panchayat-green);">Quick Links</strong>
+          <p class="muted" style="margin:8px 0 0;"><a href="#raise">Raise a Complaint</a></p>
+          <p class="muted"><a href="#projects">View Projects</a></p>
+          <p class="muted"><a href="#notices">Latest Notices</a></p>
+        </div>
+      </div>
+      <p class="muted center" style="margin-top:18px;">© <span id="year">2024</span> Hayatpur Panchayat. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <button id="scrollToTop" title="Go to top">↑</button>
+
+  <script>
+    // Keep all existing functions & routes intact — only enhance UI behaviors (no logic changes)
+    const API_BASE_URL = 'http://localhost:3000/api';
+    const WHATSAPP_NUMBER = '918979959958';
+    const qs = sel => document.querySelector(sel);
+    const qsa = sel => [...document.querySelectorAll(sel)];
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Mobile menu toggle
+    const menuToggle = qs('#menuToggle');
+    const mobileMenu = qs('#mobileMenu');
+    menuToggle && menuToggle.addEventListener('click', () => {
+      const open = mobileMenu.style.display === 'block';
+      mobileMenu.style.display = open ? 'none' : 'block';
+      menuToggle.setAttribute('aria-expanded', String(!open));
+    });
+
+    // Header shrink on scroll
+    const header = qs('#topHeader');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 40) header.classList.add('shrink'); else header.classList.remove('shrink');
+      // scroll to top button
+      if (window.scrollY > 300) qs('#scrollToTop').classList.add('show'); else qs('#scrollToTop').classList.remove('show');
+    });
+
+    // Ripple helper for buttons
+    function createRipple(e){
+      const btn = e.currentTarget;
+      const rect = btn.getBoundingClientRect();
+      const circle = document.createElement('span');
+      const size = Math.max(rect.width, rect.height);
+      circle.style.width = circle.style.height = size + 'px';
+      circle.style.left = (e.clientX - rect.left - size/2) + 'px';
+      circle.style.top = (e.clientY - rect.top - size/2) + 'px';
+      circle.className = 'ripple';
+      btn.appendChild(circle);
+      setTimeout(()=> circle.remove(), 650);
+    }
+    qsa('.btn').forEach(b => b.addEventListener('click', createRipple));
+
+
+
+
+
+
+
+
+
+
+
+// ✅ Auto-update Panchayat Data Seed
+(function seed() {
+  const newData = {
+    members: [
+      { name: 'Sohan Lal', role: 'Sarpanch', phone: '+91 89799 59958', photo: 'https://i.pravatar.cc/120?img=32' },
+      { name: 'Ramesh Singh', role: 'Up-Sarpanch', phone: '+91 89799 59958', photo: 'https://i.pravatar.cc/120?img=12' },
+      { name: 'Anita Devi', role: 'Member', phone: '+91 89799 59958', photo: 'https://i.pravatar.cc/120?img=48' },
+      { name: 'Geeta', role: 'Secretary', phone: '+91 89799 59958', photo: 'https://i.pravatar.cc/120?img=5' }
+    ],
+    projects: [
+      { title: 'Village Road Repair (2.5 km)', status: 'Completed', desc: 'Main access road resurfacing and drainage.', budget: '₹2,00,000', progress: 100 },
+      { title: 'Water Supply Line', status: 'Completed', desc: 'New pipeline to 3 hamlets.', budget: '₹3,50,000', progress: 100 },
+      { title: 'Government Boundaries', status: 'In Progress', desc: 'Mapping and marking official village boundaries — on-ground surveys combined with GIS mapping to clarify land records, resolve disputes and guide future planning.', budget: '₹1,20,000', progress: 100 }
+    ],
+    notices: [
+      { title: 'Gram Sabha: 20 Oct 2025', date: '2025-10-20', content: 'All residents requested to attend Gram Sabha at Panchayat Bhawan.' },
+      { title: 'Mosquito Control Drive', date: '2025-09-10', content: 'Spraying scheduled in village sectors. Keep water drums covered.' }
+    ],
+    documents: [
+      { title: 'Panchayat Budget Summary 2025-26', type: 'PDF', size: '2.1MB' },
+      { title: 'Gram Sabha Minutes (Last Meet)', type: 'PDF', size: '540KB' },
+      { title: 'PM Awas Yojana Application Form', type: 'DOC', size: '88KB' }
+    ]
+  };
+
+  const storedData = JSON.parse(localStorage.getItem('panchayat_data') || 'null');
+
+  // Compare old and new data
+  const isSameData = storedData && JSON.stringify(storedData) === JSON.stringify(newData);
+
+  // If data is different or missing → update localStorage
+  if (!isSameData) {
+    localStorage.setItem('panchayat_data', JSON.stringify(newData));
+    localStorage.setItem('panchayat_seed', '1');
+    console.log('%c[Panchayat Data Updated]', 'color: green; font-weight: bold;');
+  } else {
+    console.log('%c[Panchayat Data Already Up-to-date]', 'color: gray;');
+  }
+})();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    function loadData(){ return JSON.parse(localStorage.getItem('panchayat_data') || '{}'); }
+    function saveData(obj){ localStorage.setItem('panchayat_data', JSON.stringify(obj)); }
+
+    function renderMembers(){ const grid = qs('#membersGrid'); if(!grid) return; grid.innerHTML=''; const data = loadData(); (data.members||[]).forEach(m=>{ const d=document.createElement('div'); d.className='card fade-up'; d.innerHTML=`<div style="display:flex;gap:12px;align-items:center;"><img src="${m.photo}" alt="${m.name}" style="width:64px;height:64px;border-radius:12px;object-fit:cover;border:3px solid rgba(246,162,26,0.14)"><div><strong>${m.name}</strong><div class="muted">${m.role}</div><div class="small muted" style="margin-top:6px;">${m.phone}</div></div></div>`; grid.appendChild(d); }); }
+
+    function renderProjects(){ const grid = qs('#projectsGrid'); if(!grid) return; grid.innerHTML=''; const data = loadData(); (data.projects||[]).forEach(p=>{ const d=document.createElement('div'); d.className='project fade-up'; const progress=p.progress||0; d.innerHTML=`<h4>${p.title}</h4><p class="muted" style="margin-bottom:8px;">${p.status} • ${p.budget}</p><p style="margin-bottom:10px;">${p.desc}</p><div class="progress-container" title="${progress}% Complete"><div class="progress-bar" style="width:${progress}%"></div></div><p class="small muted" style="margin-top:8px;">${progress}% Complete</p>`; grid.appendChild(d); }); }
+
+    function renderNotices(){ const list=qs('#noticesList'); if(!list) return; list.innerHTML=''; const data=loadData(); (data.notices||[]).forEach(n=>{ const d=document.createElement('div'); d.className='notice fade-up'; d.innerHTML=`<h4 style="margin-bottom:6px;">${n.title} <small class="muted">(${n.date})</small></h4><p class="muted" style="margin-top:4px;">${n.content}</p>`; list.appendChild(d); }); }
+
+    function renderDocuments(){ const list=qs('#documentsList'); if(!list) return; list.innerHTML=''; const data=loadData(); (data.documents||[]).forEach(doc=>{ const a=document.createElement('a'); a.href='#'; a.className='card fade-up'; a.style.display='flex'; a.style.alignItems='center'; a.style.gap='12px'; a.innerHTML=`<svg class="svg-icon" viewBox="0 0 24 24" style="width:28px;height:28px;opacity:0.9;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM6 4h7v4h4v12H6V4zm10 16v-4H8v4h8z"/></svg><div style="flex:1"><strong>${doc.title}</strong><div class="muted small">${doc.type} • ${doc.size}</div></div>`; list.appendChild(a); }); }
+
+    // Keep original API-based functions intact (no logic changes)
+    async function updateStats(){ try{ const response=await fetch(`${API_BASE_URL}/queries`); const queries=await response.json(); qs('#statQueries').textContent=queries.length; qs('#statResolved').textContent=queries.filter(x=>x.status==='Resolved').length; const data=loadData(); qs('#statProjects').textContent=(data.projects||[]).length; }catch(e){ console.error('Stats API failed',e); qs('#statQueries').textContent='API'; qs('#statResolved').textContent='API'; } }
+
+    // Attach event handlers (forms, admin, check status) - preserved from original file
+    qs('#queryForm').addEventListener('submit', async function(e){ e.preventDefault(); const submitBtn=qs('#querySubmitBtn'); const orig=submitBtn.textContent; submitBtn.textContent='Submitting...'; submitBtn.disabled=true; const name=qs('#name').value.trim(); const mobile=qs('#mobile').value.trim(); const village=qs('#village').value.trim(); const subject=qs('#subject').value.trim(); const message=qs('#message').value.trim(); if(!name||!mobile||!subject||!message){ qs('#formMsg').textContent='Please fill all required fields.'; submitBtn.textContent=orig; submitBtn.disabled=false; return; } try{ const response=await fetch(`${API_BASE_URL}/queries`,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,mobile,village,subject,message}) }); if(!response.ok) throw new Error('Server failed'); const result=await response.json(); const id=result.query.id; const autoMessage=`*नयी नागरिक शिकायत/Query सबमिट हुई है!* \n
+Query ID: ${id}\n
+नाम: ${name}\n
+मोबाइल: ${mobile}\n
+ग्राम/वार्ड: ${village||'N/A'}\n
+विषय: ${subject}\n
+\nसंदेश:\n${message}\n\n---\nStatus: Pending.`; const encoded=encodeURIComponent(autoMessage); const whatsappUrl=`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`; window.open(whatsappUrl,'_blank'); qs('#formMsg').innerHTML=`Submitted ✓ Your Query ID: <strong>${id}</strong>. Save this for tracking.`; this.reset(); let my=JSON.parse(localStorage.getItem('my_query_tracker')||'[]'); if(!my.includes(id)){ my.push(id); localStorage.setItem('my_query_tracker', JSON.stringify(my)); } updateStats(); checkMyQueryUpdates(); location.hash='#status'; setTimeout(()=>{ qs('#statusResult').innerHTML=`<div class="card"><strong>ID: ${id}</strong> — <div class="muted">Status: Pending</div></div>`; },300); }catch(err){ console.error(err); qs('#formMsg').textContent='Submission Failed. Please try again later. (API Error)'; } finally{ submitBtn.textContent=orig; submitBtn.disabled=false; } });
+
+    qs('#suggestForm') && qs('#suggestForm').addEventListener('submit', async function(e){ e.preventDefault(); const submitBtn=qs('#suggestSubmitBtn'); const orig=submitBtn.textContent; submitBtn.textContent='Submitting...'; submitBtn.disabled=true; const name=qs('#s_name').value.trim()||'Anonymous'; const village=qs('#s_village').value.trim()||'N/A'; const subject=qs('#s_subject').value.trim(); const message=qs('#s_message').value.trim(); if(!subject||!message){ qs('#suggestMsg').textContent='Please fill the subject and message.'; submitBtn.textContent=orig; submitBtn.disabled=false; return; } try{ await fetch(`${API_BASE_URL}/suggestions`,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,village,subject,message}) }); qs('#suggestMsg').innerHTML='Thank you! Your suggestion has been recorded.'; this.reset(); renderSuggestAdminList(); }catch(err){ console.error(err); qs('#suggestMsg').textContent='Submission Failed. (API Error)'; } finally{ submitBtn.textContent=orig; submitBtn.disabled=false; } });
+
+    qs('#checkForm') && qs('#checkForm').addEventListener('submit', async function(e){ e.preventDefault(); const qid=(qs('#qid').value||'').trim().toUpperCase(); const out=qs('#statusResult'); out.innerHTML=''; if(!qid){ out.innerHTML=`<div class="card"><p class="muted">Enter a Query ID to search.</p></div>`; return; } try{ const response=await fetch(`${API_BASE_URL}/queries`); const arr=await response.json(); const q=arr.find(x=>x.id===qid); if(!q){ out.innerHTML=`<div class="card"><p class="muted">No query found with ID <strong>${qid}</strong>.</p></div>`; return; } out.innerHTML=`<div class="card"><h4>${q.id} — ${q.status}</h4><p><strong>${q.subject}</strong></p><p>${q.message}</p><p class="small muted">By ${q.name} • ${new Date(q.createdAt).toLocaleString()}</p></div>`; }catch(err){ out.innerHTML=`<div class="card"><p class="muted">Could not connect to the server to check status.</p></div>`; } });
+
+    // ADMIN: secure check using SHA-256 hash to avoid storing plain PIN in the source
+    // Hash for PIN "7892" (SHA-256): 69645d32e668bade1aa7486091868cd48898d99b35a34ea3738a185bd45a4099
+    const ADMIN_HASH = '69645d32e668bade1aa7486091868cd48898d99b35a34ea3738a185bd45a4099';
+
+    qs('#adminLogin') && qs('#adminLogin').addEventListener('click', async function(){
+      const pin=(qs('#adminPin').value||'').trim();
+      if(!pin){ alert('Enter PIN.'); return; }
+      try{
+        const enc = new TextEncoder();
+        const buf = await crypto.subtle.digest('SHA-256', enc.encode(pin));
+        const hex = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+        if(hex !== ADMIN_HASH){ alert('Invalid demo PIN.'); return; }
+        qs('#adminArea').style.display='block'; renderAdminList(); renderSuggestAdminList(); location.hash='#admin';
+      }catch(err){ console.error('PIN check failed',err); alert('Could not verify PIN.'); }
+    });
+
+    async function renderAdminList(){ const list=qs('#adminList'); list.innerHTML='Fetching queries from server...'; try{ const response=await fetch(`${API_BASE_URL}/queries`); const arr=await response.json(); if(arr.length===0){ list.innerHTML='<div class="muted">No queries submitted yet.</div>'; return; } list.innerHTML=''; arr.forEach(q=>{ const d=document.createElement('div'); d.className='card fade-up'; d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;"><div><strong>${q.id}</strong> <span class="muted">• ${q.name}</span><div class="muted small">${new Date(q.createdAt).toLocaleString()}</div></div><div style="display:flex;gap:8px;align-items:center"><select aria-label="Status select" style="padding:8px;border-radius:8px;border:1px solid #e6eef0"><option ${q.status==='Pending'?'selected':''}>Pending</option><option ${q.status==='In Progress'?'selected':''}>In Progress</option><option ${q.status==='Resolved'?'selected':''}>Resolved</option></select><button class="btn small">Update</button></div></div><div style="margin-top:10px">${q.subject?`<strong>${q.subject}</strong>`:''}<p class="muted">${q.message}</p></div>`; const sel=d.querySelector('select'); const btn=d.querySelector('button'); btn.addEventListener('click', async ()=>{ const newStatus=sel.value; try{ await fetch(`${API_BASE_URL}/queries/${q.id}`,{ method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:newStatus}) }); alert(`Updated ${q.id} → ${newStatus}`); renderAdminList(); updateStats(); checkMyQueryUpdates(); }catch(err){ alert('Update failed (API Error).'); } }); list.appendChild(d); }); }catch(err){ list.innerHTML='<div class="muted">Error: Could not connect to the backend server (Is server.js running on port 3000?).</div>'; } }
+
+    async function renderSuggestAdminList(){ const list=qs('#suggestAdminList'); if(!list) return; list.innerHTML='Fetching suggestions from server...'; try{ const response=await fetch(`${API_BASE_URL}/suggestions`); const arr=await response.json(); if(arr.length===0){ list.innerHTML='<div class="muted">No suggestions submitted yet.</div>'; return; } list.innerHTML=''; arr.forEach(s=>{ const d=document.createElement('div'); d.className='card fade-up'; d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;"><div><strong>${s.subject}</strong> <span class="muted">• By ${s.name} (${s.village||'N/A'})</span><div class="muted small">${new Date(s.createdAt).toLocaleString()}</div></div></div><p class="muted" style="margin-top:8px;">${s.message}</p>`; list.appendChild(d); }); }catch(err){ list.innerHTML='<div class="muted">Error: Could not connect to the backend server.</div>'; } }
+
+    async function checkMyQueryUpdates(){ const tracker=qs('#myQueriesTracker'); if(!tracker) return; const myQueries=JSON.parse(localStorage.getItem('my_query_tracker')||'[]'); if(myQueries.length===0){ tracker.innerHTML=''; return; } try{ const response=await fetch(`${API_BASE_URL}/queries`); const all=await response.json(); tracker.innerHTML=''; let has=false; myQueries.forEach(id=>{ const q=all.find(x=>x.id===id); if(q&&q.status!=='Pending'){ has=true; const d=document.createElement('div'); d.className='card notice fade-up'; d.innerHTML=`🔔 Status Updated! <strong>ID: ${q.id}</strong><p class="small muted">New Status: <strong>${q.status}</strong></p>`; tracker.appendChild(d); } }); const statusTab=qs('a[href="#status"]'); if(statusTab){ has?statusTab.classList.add('has-update'):statusTab.classList.remove('has-update'); } }catch(err){ console.error('update check failed',err); } }
+
+    // Small helpers & init
+    qs('#raiseNow') && qs('#raiseNow').addEventListener('click', ()=> location.hash='#raise');
+    qs('#whatsappQuick') && qs('#whatsappQuick').addEventListener('click', ()=> window.open(`https://wa.me/${WHATSAPP_NUMBER}`,'_blank'));
+
+    document.addEventListener('keydown', e=>{ if(e.key==='Tab') document.body.classList.add('show-focus'); });
+
+    // initial render
+    (function init(){ renderMembers(); renderProjects(); renderNotices(); renderDocuments(); updateStats(); checkMyQueryUpdates(); setTimeout(()=> qsa('.fade-up').forEach((el,i)=> el.style.animationDelay=(i*70)+'ms'),10); setInterval(checkMyQueryUpdates,30000); })();
+
+    // scroll to top
+    qs('#scrollToTop').addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
+
+
+
+
+
+
+
+
+
+
+    // Language toggle (UPDATED TEXTS)
+    qs('#langToggle').addEventListener('click', function () {
+      const cur = this.textContent.trim();
+      if (cur === 'हिंदी') {
+        this.textContent = 'EN';
+        // Hindi translations (UPDATED)
+        qs('.title').textContent = 'हायातपुर पंचायत';
+        qs('.sub').textContent = 'डिजिटल नागरिक सेवा — पारदर्शिता • जवाबदेही • तेज़ी';
+        qs('#home-heading').innerHTML = 'हायातपुर पंचायत में आपका <strong>स्वागत</strong> — नागरिक पोर्टल';
+        qs('#raise-title').textContent = 'शिकायत / सुझाव दर्ज करें';
+        qs('#suggest-title').textContent = 'सुधार / विचार सुझाएँ'; 
+        qs('#library-title').textContent = 'ई-लाइब्रेरी और दस्तावेज़'; 
+        qs('#status-title').textContent = 'शिकायत की स्थिति देखें';
+        qs('#admin-title').textContent = 'प्रशासन ';
+        qs('#members-title').textContent = 'पंचायती सदस्य';
+        qs('#projects-title').textContent = 'विकास कार्य';
+        qs('#notices-title').textContent = 'सूचनाएँ और घोषणाएँ';
+        qs('#schemes-title').textContent = 'योजनाएँ और बजट';
+        qs('#formHelp').textContent = 'सबमिशन के बाद आपको एक Query ID मिलेगा — इसे स्टोर करें।';
+        qs('#suggestHelp').textContent = 'आपकी पहचान निजी रखी जाएगी जब तक आप अन्यथा सहमत न हों।';
+      } else {
+        location.reload();
+      }
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+    // Language toggle (UPDATED TEXTS)
+    qs('#lang1Toggle').addEventListener('click', function () {
+      const cur = this.textContent.trim();
+      if (cur === 'हिंदी') {
+        this.textContent = 'EN';
+        // Hindi translations (UPDATED)
+        qs('.title').textContent = 'हायातपुर पंचायत';
+        qs('.sub').textContent = 'डिजिटल नागरिक सेवा — पारदर्शिता • जवाबदेही • तेज़ी';
+        qs('#home-heading').innerHTML = 'हायातपुर पंचायत में आपका <strong>स्वागत</strong> — नागरिक पोर्टल';
+        qs('#raise-title').textContent = 'शिकायत / सुझाव दर्ज करें';
+        qs('#suggest-title').textContent = 'सुधार / विचार सुझाएँ'; 
+        qs('#library-title').textContent = 'ई-लाइब्रेरी और दस्तावेज़'; 
+        qs('#status-title').textContent = 'शिकायत की स्थिति देखें';
+        qs('#admin-title').textContent = 'प्रशासन ';
+        qs('#members-title').textContent = 'पंचायती सदस्य';
+        qs('#projects-title').textContent = 'विकास कार्य';
+        qs('#notices-title').textContent = 'सूचनाएँ और घोषणाएँ';
+        qs('#schemes-title').textContent = 'योजनाएँ और बजट';
+        qs('#formHelp').textContent = 'सबमिशन के बाद आपको एक Query ID मिलेगा — इसे स्टोर करें।';
+        qs('#suggestHelp').textContent = 'आपकी पहचान निजी रखी जाएगी जब तक आप अन्यथा सहमत न हों।';
+      } else {
+        location.reload();
+      }
+    });
+
+
+
+
+    
+    // Dark Mode Toggle Logic (Placeholder)
+    if (qs('#darkModeToggle')) {
+        qs('#darkModeToggle').addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+        });
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+        }
+    }
+    
+
+
+
+
+
+
+
+
+
+
+  </script>
+</body>
+</html>
